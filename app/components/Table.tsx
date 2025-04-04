@@ -6,6 +6,7 @@ import TableCell from "@mui/material/TableCell";
 import TableContainer from "@mui/material/TableContainer";
 import TableHead from "@mui/material/TableHead";
 import TableRow from "@mui/material/TableRow";
+import { Sparklines, SparklinesLine } from "react-sparklines";
 
 interface Coin {
   id: string;
@@ -15,6 +16,9 @@ interface Coin {
   current_price: number;
   price_change_percentage_24h: number;
   total_volume: number;
+  sparkline_in_7d: {
+    price: number[];
+  };
 }
 
 const columns = [
@@ -35,6 +39,12 @@ const columns = [
     align: "right",
     format: (value: number) => value.toLocaleString(),
   },
+  {
+    id: "sparkline",
+    label: "7d Chart",
+    minWidth: 100,
+    align: "right",
+  },
 ];
 
 export default function CoinTable({
@@ -44,12 +54,12 @@ export default function CoinTable({
   coins: Coin[];
   vs_currency: string;
 }) {
-  
-  const currencySymbol = vs_currency === "USD" ? "$" : vs_currency === "EUR" ? "€" : "¥";
+  const currencySymbol =
+    vs_currency === "USD" ? "$" : vs_currency === "EUR" ? "€" : "¥";
 
   return (
     <Paper sx={{ width: "100%" }}>
-      <TableContainer >
+      <TableContainer>
         <Table>
           <TableHead>
             <TableRow>
@@ -57,7 +67,12 @@ export default function CoinTable({
                 <TableCell
                   key={column.id}
                   align={column.align as "right" | "left"}
-                  sx={{ width: "20%", fontWeight: "bold", bgcolor: "gray", color: "white" }}
+                  sx={{
+                    width: "20%",
+                    fontWeight: "bold",
+                    bgcolor: "gray",
+                    color: "white",
+                  }}
                 >
                   {column.label}
                 </TableCell>
@@ -71,27 +86,73 @@ export default function CoinTable({
                   if (column.id === "coin") {
                     return (
                       <TableCell key={column.id}>
-                        <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-                          <img src={coin.image} alt={coin.name} width="24" height="24" />
-                          <span style={{ textTransform: "uppercase" }}>{coin.symbol}</span>
+                        <div
+                          style={{
+                            display: "flex",
+                            alignItems: "center",
+                            gap: "8px",
+                          }}
+                        >
+                          <img
+                            src={coin.image}
+                            alt={coin.name}
+                            width="24"
+                            height="24"
+                          />
+                          <span style={{ textTransform: "uppercase" }}>
+                            {coin.symbol}
+                          </span>
                         </div>
+                      </TableCell>
+                    );
+                  }
+
+                  if (column.id === "sparkline") {
+                    const sparklineData = coin.sparkline_in_7d?.price || [];
+                    const isUp =
+                      sparklineData[sparklineData.length - 1] -
+                        sparklineData[0] >=
+                      0;
+                    const lineColor = isUp ? "green" : "red";
+
+                    return (
+                      <TableCell key={column.id} align="right">
+                        <Sparklines
+                          data={sparklineData}
+                          svgWidth={100}
+                          svgHeight={30}
+                        >
+                          <SparklinesLine
+                            color={lineColor}
+                            style={{ fill: "none" }}
+                          />
+                        </Sparklines>
                       </TableCell>
                     );
                   }
 
                   let value = coin[column.id as keyof Coin];
 
-                  if (column.id === "current_price" && typeof value === "number") {
+                  if (
+                    column.id === "current_price" &&
+                    typeof value === "number"
+                  ) {
                     value = `${currencySymbol}${value.toLocaleString()}`;
                   }
 
-                  if (column.id === "price_change_percentage_24h" && typeof value === "number") {
+                  if (
+                    column.id === "price_change_percentage_24h" &&
+                    typeof value === "number"
+                  ) {
                     const isPositive = value >= 0;
                     return (
                       <TableCell
                         key={column.id}
                         align="right"
-                        sx={{ color: isPositive ? "green" : "red", fontWeight: "bold" }}
+                        sx={{
+                          color: isPositive ? "green" : "red",
+                          fontWeight: "bold",
+                        }}
                       >
                         {value.toFixed(2)}%
                       </TableCell>
@@ -99,7 +160,10 @@ export default function CoinTable({
                   }
 
                   return (
-                    <TableCell key={column.id} align={column.align as "right" | "left"}>
+                    <TableCell
+                      key={column.id}
+                      align={column.align as "right" | "left"}
+                    >
                       {column.format && typeof value === "number"
                         ? column.format(value)
                         : value}
