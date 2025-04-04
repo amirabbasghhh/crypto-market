@@ -1,12 +1,29 @@
 import * as React from "react";
-import Paper from "@mui/material/Paper";
-import Table from "@mui/material/Table";
-import TableBody from "@mui/material/TableBody";
-import TableCell from "@mui/material/TableCell";
-import TableContainer from "@mui/material/TableContainer";
-import TableHead from "@mui/material/TableHead";
-import TableRow from "@mui/material/TableRow";
+import {
+  Paper,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Modal,
+  Box,
+  Button,
+  Typography,
+  Stack,
+} from "@mui/material";
 import { Sparklines, SparklinesLine } from "react-sparklines";
+import {
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  Tooltip,
+  ResponsiveContainer,
+  CartesianGrid,
+} from "recharts";
+import { getCoinChartData } from "../lib/api";
 
 interface Coin {
   id: string;
@@ -19,6 +36,7 @@ interface Coin {
   sparkline_in_7d: {
     price: number[];
   };
+  ath: number; // اضافه کردن ویژگی 'ath' (All-Time High)
 }
 
 const columns = [
@@ -30,21 +48,14 @@ const columns = [
     label: "24h",
     minWidth: 100,
     align: "right",
-    format: (value: number) => `${value.toFixed(2)}%`,
   },
   {
     id: "total_volume",
     label: "Total Volume",
     minWidth: 100,
     align: "right",
-    format: (value: number) => value.toLocaleString(),
   },
-  {
-    id: "sparkline",
-    label: "7d Chart",
-    minWidth: 100,
-    align: "right",
-  },
+  { id: "sparkline", label: "7d Chart", minWidth: 100, align: "right" },
 ];
 
 export default function CoinTable({
@@ -54,127 +65,237 @@ export default function CoinTable({
   coins: Coin[];
   vs_currency: string;
 }) {
+  const [open, setOpen] = React.useState(false);
+  const [selectedCoin, setSelectedCoin] = React.useState<Coin | null>(null);
+  const [chartData, setChartData] = React.useState<any>(null);
+  const [activeType, setActiveType] = React.useState<
+    "prices" | "market_caps" | "total_volumes"
+  >("prices");
+
+  const handleRowClick = async (coin: Coin) => {
+    setSelectedCoin(coin);
+    setOpen(true);
+    const data = await getCoinChartData(coin.id, vs_currency);
+    setChartData(data);
+    setActiveType("prices");
+  };
+
+  const handleClose = () => {
+    setOpen(false);
+    setSelectedCoin(null);
+    setChartData(null);
+  };
+
   const currencySymbol =
     vs_currency === "USD" ? "$" : vs_currency === "EUR" ? "€" : "¥";
 
   return (
-    <Paper sx={{ width: "100%" }}>
-      <TableContainer>
-        <Table>
-          <TableHead>
-            <TableRow>
-              {columns.map((column) => (
-                <TableCell
-                  key={column.id}
-                  align={column.align as "right" | "left"}
-                  sx={{
-                    width: "20%",
-                    fontWeight: "bold",
-                    bgcolor: "gray",
-                    color: "white",
-                  }}
+    <>
+      <Paper sx={{ width: "100%" }}>
+        <TableContainer>
+          <Table>
+            <TableHead>
+              <TableRow>
+                {columns.map((column) => (
+                  <TableCell
+                    key={column.id}
+                    align={column.align as "right" | "left"}
+                    sx={{
+                      fontWeight: "bold",
+                      bgcolor: "gray",
+                      color: "white",
+                    }}
+                  >
+                    {column.label}
+                  </TableCell>
+                ))}
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {coins.map((coin) => (
+                <TableRow
+                  hover
+                  key={coin.id}
+                  sx={{ cursor: "pointer" }}
+                  onClick={() => handleRowClick(coin)}
                 >
-                  {column.label}
-                </TableCell>
-              ))}
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {coins.map((coin) => (
-              <TableRow hover key={coin.id}>
-                {columns.map((column) => {
-                  if (column.id === "coin") {
-                    return (
-                      <TableCell key={column.id}>
-                        <div
-                          style={{
-                            display: "flex",
-                            alignItems: "center",
-                            gap: "8px",
+                  {columns.map((column) => {
+                    if (column.id === "coin") {
+                      return (
+                        <TableCell key={column.id}>
+                          <div
+                            style={{
+                              display: "flex",
+                              alignItems: "center",
+                              gap: "8px",
+                            }}
+                          >
+                            <img
+                              src={coin.image}
+                              alt={coin.name}
+                              width="24"
+                              height="24"
+                            />
+                            <span style={{ textTransform: "uppercase" }}>
+                              {coin.symbol}
+                            </span>
+                          </div>
+                        </TableCell>
+                      );
+                    }
+
+                    if (column.id === "sparkline") {
+                      const data = coin.sparkline_in_7d?.price || [];
+                      const isUp = data[data.length - 1] - data[0] >= 0;
+                      return (
+                        <TableCell key={column.id} align="right">
+                          <Sparklines data={data} svgWidth={100} svgHeight={30}>
+                            <SparklinesLine color={isUp ? "green" : "red"} />
+                          </Sparklines>
+                        </TableCell>
+                      );
+                    }
+
+                    const value = coin[column.id as keyof Coin];
+
+                    if (
+                      column.id === "current_price" &&
+                      typeof value === "number"
+                    ) {
+                      return (
+                        <TableCell key={column.id} align="right">
+                          {currencySymbol + value.toLocaleString()}
+                        </TableCell>
+                      );
+                    }
+
+                    if (
+                      column.id === "price_change_percentage_24h" &&
+                      typeof value === "number"
+                    ) {
+                      const isPositive = value >= 0;
+                      return (
+                        <TableCell
+                          key={column.id}
+                          align="right"
+                          sx={{
+                            color: isPositive ? "green" : "red",
+                            fontWeight: "bold",
                           }}
                         >
-                          <img
-                            src={coin.image}
-                            alt={coin.name}
-                            width="24"
-                            height="24"
-                          />
-                          <span style={{ textTransform: "uppercase" }}>
-                            {coin.symbol}
-                          </span>
-                        </div>
-                      </TableCell>
-                    );
-                  }
-
-                  if (column.id === "sparkline") {
-                    const sparklineData = coin.sparkline_in_7d?.price || [];
-                    const isUp =
-                      sparklineData[sparklineData.length - 1] -
-                        sparklineData[0] >=
-                      0;
-                    const lineColor = isUp ? "green" : "red";
+                          {value.toFixed(2)}%
+                        </TableCell>
+                      );
+                    }
 
                     return (
-                      <TableCell key={column.id} align="right">
-                        <Sparklines
-                          data={sparklineData}
-                          svgWidth={100}
-                          svgHeight={30}
-                        >
-                          <SparklinesLine
-                            color={lineColor}
-                            style={{ fill: "none" }}
-                          />
-                        </Sparklines>
-                      </TableCell>
-                    );
-                  }
-
-                  let value = coin[column.id as keyof Coin];
-
-                  if (
-                    column.id === "current_price" &&
-                    typeof value === "number"
-                  ) {
-                    value = `${currencySymbol}${value.toLocaleString()}`;
-                  }
-
-                  if (
-                    column.id === "price_change_percentage_24h" &&
-                    typeof value === "number"
-                  ) {
-                    const isPositive = value >= 0;
-                    return (
-                      <TableCell
+                        <TableCell
                         key={column.id}
-                        align="right"
-                        sx={{
-                          color: isPositive ? "green" : "red",
-                          fontWeight: "bold",
-                        }}
+                        align={column.align as "right" | "left"}
                       >
-                        {value.toFixed(2)}%
+                        {typeof value === "number"
+                          ? value.toLocaleString() 
+                          : Array.isArray(value)
+                          ? value.length > 0
+                            ? value[0].toLocaleString() 
+                            : "N/A"
+                          : typeof value === "object" && value !== null
+                          ? "N/A" 
+                          : value}
                       </TableCell>
+                      
                     );
-                  }
+                  })}
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </TableContainer>
+      </Paper>
 
-                  return (
-                    <TableCell
-                      key={column.id}
-                      align={column.align as "right" | "left"}
-                    >
-                      {column.format && typeof value === "number"
-                        ? column.format(value)
-                        : value}
-                    </TableCell>
-                  );
-                })}
-              </TableRow>
+      <Modal open={open} onClose={handleClose}>
+        <Box
+          sx={{
+            position: "absolute",
+            top: "50%",
+            left: "50%",
+            transform: "translate(-50%, -50%)",
+            bgcolor: "white",
+            boxShadow: 24,
+            p: 3,
+            width: "500px",
+            borderRadius: 2,
+          }}
+        >
+          <Box display="flex" alignItems="center" gap={2} mb={2}>
+            <img
+              src={selectedCoin?.image}
+              alt={selectedCoin?.name}
+              width={40}
+              height={40}
+              style={{ borderRadius: "50%" }}
+            />
+            <Typography variant="h6" fontWeight="bold">
+              {selectedCoin?.name} ({selectedCoin?.symbol.toUpperCase()})
+            </Typography>
+          </Box>
+
+          {chartData && (
+            <ResponsiveContainer width="100%" height={300}>
+              <LineChart
+                data={chartData[activeType].map((entry: [number, number]) => ({
+                  time: new Date(entry[0]).toLocaleDateString(),
+                  value: entry[1],
+                }))}
+              >
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis
+                  dataKey="time"
+                  label={{ value: activeType, position: "insideBottom" }}
+                  tick={false} 
+                />
+                <YAxis />
+                <Tooltip />
+                <Line
+                  type="monotone"
+                  dataKey="value"
+                  stroke="#f97316"
+                  dot={false}
+                />
+              </LineChart>
+            </ResponsiveContainer>
+          )}
+
+          <Stack direction="row" spacing={2} mt={3} justifyContent="center">
+            {["prices", "market_caps", "total_volumes"].map((type) => (
+              <Button
+                key={type}
+                size="small"
+                variant={activeType === type ? "contained" : "outlined"}
+                onClick={() => setActiveType(type as any)}
+              >
+                {type.replace("_", " ")}
+              </Button>
             ))}
-          </TableBody>
-        </Table>
-      </TableContainer>
-    </Paper>
+          </Stack>
+
+          <Box mt={3}>
+            <Typography variant="body2" color="text.secondary" mb={1}>
+              🔸 <strong>{activeType.replace("_", " ")}:</strong>{" "}
+              {chartData?.[activeType]?.[
+                chartData[activeType].length - 1
+              ]?.[1].toLocaleString()}
+            </Typography>
+            <Typography variant="body2" color="text.secondary" mb={1}>
+              🔹 <strong>Current Price:</strong>{" "}
+              {selectedCoin?.current_price.toLocaleString()}
+            </Typography>
+            <Typography variant="body2" color="text.secondary">
+              🚀 <strong>ATH:</strong> {selectedCoin?.ath?.toLocaleString()}
+            </Typography>
+          </Box>
+        </Box>
+      </Modal>
+    </>
   );
 }
