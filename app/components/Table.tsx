@@ -48,8 +48,8 @@ export default function CoinTable({
   const currencySymbol = vs_currency === "USD" ? "$" : vs_currency === "EUR" ? "€" : "¥";
 
   return (
-    <Paper sx={{ width: "100%", overflow: "hidden" }}>
-      <TableContainer sx={{ maxHeight: 440 }}>
+    <Paper sx={{ width: "100%" }}>
+      <TableContainer >
         <Table>
           <TableHead>
             <TableRow>
