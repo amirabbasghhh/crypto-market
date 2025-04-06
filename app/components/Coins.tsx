@@ -8,6 +8,7 @@ import CircularProgress from "@mui/material/CircularProgress";
 import Pagination from "@mui/material/Pagination";
 import CryptoHighlights from "./CryptoHighlights";
 import CryptoNews from "./CryptoNews";
+import FeaturedArticles from "./FeaturedArticles";
 
 const Coins = () => {
   const [coins, setCoins] = useState([]);
@@ -83,6 +84,7 @@ const Coins = () => {
         </>
       )}
       <CryptoNews/>
+      <FeaturedArticles/>
     </div>
   );
 };
