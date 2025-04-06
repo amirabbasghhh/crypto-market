@@ -1,5 +1,6 @@
 export async function getCoins(vs_currency: string, page:number) {
     const API_KEY="CG-2dos2tsQyepiGzFCzGJXzJyG"
+    
     try {
       const res = await fetch(
         `https://api.coingecko.com/api/v3/coins/markets?vs_currency=${vs_currency}&per_page=10&page=${page}&x_cg_demo_api_key=${API_KEY}&sparkline=true`,

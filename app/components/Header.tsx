@@ -3,7 +3,7 @@ import { FaBitcoin, FaEthereum } from "react-icons/fa";
 
 const Header = () => {
   return (
-    <header className="fixed z-10 left-1/2 transform -translate-x-1/2 top-2 w-[80%]  bg-gradient-to-r from-orange-500 to-yellow-400 shadow-lg py-4 px-6 rounded-xl flex items-center justify-between">
+    <header className="fixed z-10 left-1/2 transform -translate-x-1/2 top-2 w-[90%] xl:w-[80%]  bg-gradient-to-r from-orange-500 to-yellow-400 shadow-lg py-4 px-6 rounded-xl flex items-center justify-between">
       <div className="flex items-center gap-3">
         <FaBitcoin className="text-white text-2xl animate-spin-slow" />
         <h1 className="text-white font-bold text-2xl tracking-wide">

@@ -36,7 +36,7 @@ interface Coin {
   sparkline_in_7d: {
     price: number[];
   };
-  ath: number; // اضافه کردن ویژگی 'ath' (All-Time High)
+  ath: number; 
 }
 
 const columns = [
@@ -99,7 +99,7 @@ export default function CoinTable({
                 {columns.map((column) => (
                   <TableCell
                     key={column.id}
-                    align={column.align as "right" | "left"}
+                    align={column.align as "right" | "left" }
                     sx={{
                       fontWeight: "bold",
                       bgcolor: "gray",
@@ -149,9 +149,11 @@ export default function CoinTable({
                       const isUp = data[data.length - 1] - data[0] >= 0;
                       return (
                         <TableCell key={column.id} align="right">
-                          <Sparklines data={data} svgWidth={100} svgHeight={30}>
-                            <SparklinesLine color={isUp ? "green" : "red"} />
-                          </Sparklines>
+                            <div className="flex items-center justify-end">
+                                <Sparklines data={data} svgWidth={100} svgHeight={30}>
+                                    <SparklinesLine color={isUp ? "green" : "red"} />
+                                </Sparklines>
+                            </div>
                         </TableCell>
                       );
                     }
@@ -164,7 +166,7 @@ export default function CoinTable({
                     ) {
                       return (
                         <TableCell key={column.id} align="right">
-                          {currencySymbol + value.toLocaleString()}
+                          {currencySymbol +" " + value.toLocaleString()}
                         </TableCell>
                       );
                     }

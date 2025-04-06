@@ -20,7 +20,7 @@ export default function RootLayout({
     <html lang="en">
       <body className={`antialiased`}>
         <Header />
-        <div className="mt-20 min-h-[800px] mx-auto w-[80%] mb-24">{children}</div>
+        <div className="mt-20 min-h-[800px] mx-auto w-[95%] lg:w-[80%] mb-24">{children}</div>
         <Footer />
       </body>
     </html>

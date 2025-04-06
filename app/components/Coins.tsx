@@ -6,6 +6,8 @@ import { getCoins } from "../lib/api";
 import CoinTable from "./Table";
 import CircularProgress from "@mui/material/CircularProgress";
 import Pagination from "@mui/material/Pagination";
+import CryptoHighlights from "./CryptoHighlights";
+import CryptoNews from "./CryptoNews";
 
 const Coins = () => {
   const [coins, setCoins] = useState([]);
@@ -41,7 +43,8 @@ const Coins = () => {
 
   return (
     <div>
-      <div className="flex items-center gap-x-3 mb-10">
+      <CryptoHighlights/>
+      <div className="flex items-center gap-x-3 mb-10 mt-20">
         <SearchInput
           value={search}
           onChange={(e) => setSearch(e.target.value)}
@@ -79,6 +82,7 @@ const Coins = () => {
           </div>
         </>
       )}
+      <CryptoNews/>
     </div>
   );
 };
