@@ -4,12 +4,12 @@ import MenuItem from "@mui/material/MenuItem";
 import FormControl from "@mui/material/FormControl";
 import Select, { SelectChangeEvent } from "@mui/material/Select";
 
-interface CurrencySelectorProps {
+interface SortSelectorProps {
   value: string;
   onChange: (event: SelectChangeEvent) => void;
 }
 
-const CurrencySelector: React.FC<CurrencySelectorProps> = ({ value, onChange }) => {
+const SortSelector: React.FC<SortSelectorProps> = ({ value, onChange }) => {
   return (
     <FormControl
       sx={{
@@ -23,20 +23,23 @@ const CurrencySelector: React.FC<CurrencySelectorProps> = ({ value, onChange }) 
         "& .MuiInputLabel-root.Mui-focused": { color: "gray" },
       }}
     >
-      <InputLabel id="currency-label">currency</InputLabel>
+      <InputLabel id="sort-label">sort</InputLabel>
       <Select
-        labelId="currency-label"
-        id="currency-select"
+        labelId="sort-label"
+        id="sort-select"
         value={value}
-        label="currency"
+        label="sort"
         onChange={onChange}
       >
-        <MenuItem value="USD">USD</MenuItem>
-        <MenuItem value="EUR">EUR</MenuItem>
-        <MenuItem value="JPY">JPY</MenuItem>
+        <MenuItem value="market_cap_asc">market_cap_asc</MenuItem>
+        <MenuItem value="market_cap_desc">market_cap_desc</MenuItem>
+        <MenuItem value="volume_asc">volume_asc</MenuItem>
+        <MenuItem value="volume_desc">volume_desc</MenuItem>
+        <MenuItem value="id_asc">id_asc</MenuItem>
+        <MenuItem value="id_asc">id_asc</MenuItem>
       </Select>
     </FormControl>
   );
 };
 
-export default CurrencySelector;
+export default SortSelector;

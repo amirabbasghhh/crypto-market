@@ -1,12 +1,19 @@
-export async function getCoins(vs_currency: string, page:number) {
+export async function getCoins(vs_currency: string, page:number,sort:string) {
     const API_KEY="CG-2dos2tsQyepiGzFCzGJXzJyG"
+    const options = {
+      method: 'GET',
+      headers: {
+        accept: 'application/json',
+        'x-cg-demo-api-key': 'CG-2dos2tsQyepiGzFCzGJXzJyG'
+      },
+      next: { revalidate: 60 }  
+    };
+    
     
     try {
       const res = await fetch(
-        `https://api.coingecko.com/api/v3/coins/markets?vs_currency=${vs_currency}&per_page=10&page=${page}&x_cg_demo_api_key=${API_KEY}&sparkline=true`,
-        {
-          next: { revalidate: 60 }, 
-        }
+        `https://api.coingecko.com/api/v3/coins/markets?vs_currency=${vs_currency}&order=${sort}&per_page=10&page=${page}&sparkline=true`,options,
+    
       );
   
       if (!res.ok) {
@@ -34,5 +41,32 @@ export async function getCoins(vs_currency: string, page:number) {
       return null;
     }
   }
+
+  export async function getCoinsSearch(search: string) {
+    const options = {
+      method: 'GET',
+      headers: {
+        accept: 'application/json',
+        'x-cg-demo-api-key': 'CG-2dos2tsQyepiGzFCzGJXzJyG'
+      },
+    
+      next: { revalidate: 60 }
+    };
+  
+    try {
+      const res = await fetch(`https://api.coingecko.com/api/v3/search?query=${search}`, options);
+  
+      if (!res.ok) {
+        throw new Error(`HTTP error! status: ${res.status}`);
+      }
+  
+      const data = await res.json();
+      return data;
+    } catch (error) {
+      console.error("Failed to fetch coin search data:", error);
+      return null; 
+    }
+  }
+  
   
   

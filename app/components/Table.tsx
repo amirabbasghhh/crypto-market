@@ -33,38 +33,26 @@ interface Coin {
   current_price: number;
   price_change_percentage_24h: number;
   total_volume: number;
-  sparkline_in_7d: {
-    price: number[];
-  };
-  ath: number; 
+  sparkline_in_7d: { price: number[] };
+  ath: number;
 }
 
 const columns = [
-  { id: "coin", label: "Coin", minWidth: 150 },
-  { id: "name", label: "Name", minWidth: 100 },
-  { id: "current_price", label: "Price", minWidth: 100, align: "right" },
-  {
-    id: "price_change_percentage_24h",
-    label: "24h",
-    minWidth: 100,
-    align: "right",
-  },
-  {
-    id: "total_volume",
-    label: "Total Volume",
-    minWidth: 100,
-    align: "right",
-  },
-  { id: "sparkline", label: "7d Chart", minWidth: 100, align: "right" },
+  { id: "coin", label: "Coin" },
+  { id: "name", label: "Name" },
+  { id: "current_price", label: "Price", align: "right" },
+  { id: "price_change_percentage_24h", label: "24h", align: "right" },
+  { id: "total_volume", label: "Total Volume", align: "right" },
+  { id: "sparkline", label: "7d Chart", align: "right" },
 ];
 
-export default function CoinTable({
+const CoinTable = ({
   coins,
   vs_currency,
 }: {
   coins: Coin[];
   vs_currency: string;
-}) {
+}) => {
   const [open, setOpen] = React.useState(false);
   const [selectedCoin, setSelectedCoin] = React.useState<Coin | null>(null);
   const [chartData, setChartData] = React.useState<any>(null);
@@ -72,22 +60,18 @@ export default function CoinTable({
     "prices" | "market_caps" | "total_volumes"
   >("prices");
 
-  const handleRowClick = async (coin: Coin) => {
+  const currencySymbol = vs_currency === "USD" ? "$" : vs_currency === "EUR" ? "€" : "¥";
+
+  const handleRowClick = React.useCallback(async (coin: Coin) => {
     setSelectedCoin(coin);
     setOpen(true);
     const data = await getCoinChartData(coin.id, vs_currency);
     setChartData(data);
     setActiveType("prices");
-  };
+  }, [vs_currency]);
 
-  const handleClose = () => {
-    setOpen(false);
-    setSelectedCoin(null);
-    setChartData(null);
-  };
-
-  const currencySymbol =
-    vs_currency === "USD" ? "$" : vs_currency === "EUR" ? "€" : "¥";
+  const formatValue = (val: any) =>
+    typeof val === "number" ? val.toLocaleString() : val ?? "N/A";
 
   return (
     <>
@@ -96,17 +80,13 @@ export default function CoinTable({
           <Table>
             <TableHead>
               <TableRow>
-                {columns.map((column) => (
+                {columns.map(({ id, label, align }) => (
                   <TableCell
-                    key={column.id}
-                    align={column.align as "right" | "left" }
-                    sx={{
-                      fontWeight: "bold",
-                      bgcolor: "gray",
-                      color: "white",
-                    }}
+                    key={id}
+                    align={align ?? "left"}
+                    sx={{ fontWeight: "bold", bgcolor: "gray", color: "white" }}
                   >
-                    {column.label}
+                    {label}
                   </TableCell>
                 ))}
               </TableRow>
@@ -119,71 +99,47 @@ export default function CoinTable({
                   sx={{ cursor: "pointer" }}
                   onClick={() => handleRowClick(coin)}
                 >
-                  {columns.map((column) => {
-                    if (column.id === "coin") {
+                  {columns.map(({ id, align }) => {
+                    if (id === "coin") {
                       return (
-                        <TableCell key={column.id}>
-                          <div
-                            style={{
-                              display: "flex",
-                              alignItems: "center",
-                              gap: "8px",
-                            }}
-                          >
-                            <img
-                              src={coin.image}
-                              alt={coin.name}
-                              width="24"
-                              height="24"
-                            />
-                            <span style={{ textTransform: "uppercase" }}>
-                              {coin.symbol}
-                            </span>
+                        <TableCell key={id}>
+                          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                            <img src={coin.image} alt={coin.name} width={24} height={24} />
+                            <span style={{ textTransform: "uppercase" }}>{coin.symbol}</span>
                           </div>
                         </TableCell>
                       );
                     }
 
-                    if (column.id === "sparkline") {
-                      const data = coin.sparkline_in_7d?.price || [];
+                    if (id === "sparkline") {
+                      const data = coin.sparkline_in_7d?.price ?? [];
                       const isUp = data[data.length - 1] - data[0] >= 0;
                       return (
-                        <TableCell key={column.id} align="right">
-                            <div className="flex items-center justify-end">
-                                <Sparklines data={data} svgWidth={100} svgHeight={30}>
-                                    <SparklinesLine color={isUp ? "green" : "red"} />
-                                </Sparklines>
-                            </div>
+                        <TableCell key={id} align="right">
+                          <Sparklines data={data} svgWidth={100} svgHeight={30}>
+                            <SparklinesLine color={isUp ? "green" : "red"} />
+                          </Sparklines>
                         </TableCell>
                       );
                     }
 
-                    const value = coin[column.id as keyof Coin];
+                    const value = coin[id as keyof Coin];
 
-                    if (
-                      column.id === "current_price" &&
-                      typeof value === "number"
-                    ) {
+                    if (id === "current_price") {
                       return (
-                        <TableCell key={column.id} align="right">
-                          {currencySymbol +" " + value.toLocaleString()}
+                        <TableCell key={id} align="right">
+                          {currencySymbol + " " + formatValue(value)}
                         </TableCell>
                       );
                     }
 
-                    if (
-                      column.id === "price_change_percentage_24h" &&
-                      typeof value === "number"
-                    ) {
+                    if (id === "price_change_percentage_24h" && typeof value === "number") {
                       const isPositive = value >= 0;
                       return (
                         <TableCell
-                          key={column.id}
+                          key={id}
                           align="right"
-                          sx={{
-                            color: isPositive ? "green" : "red",
-                            fontWeight: "bold",
-                          }}
+                          sx={{ color: isPositive ? "green" : "red", fontWeight: "bold" }}
                         >
                           {value.toFixed(2)}%
                         </TableCell>
@@ -191,21 +147,9 @@ export default function CoinTable({
                     }
 
                     return (
-                        <TableCell
-                        key={column.id}
-                        align={column.align as "right" | "left"}
-                      >
-                        {typeof value === "number"
-                          ? value.toLocaleString() 
-                          : Array.isArray(value)
-                          ? value.length > 0
-                            ? value[0].toLocaleString() 
-                            : "N/A"
-                          : typeof value === "object" && value !== null
-                          ? "N/A" 
-                          : value}
+                      <TableCell key={id} align={align ?? "left"}>
+                        {formatValue(value)}
                       </TableCell>
-                      
                     );
                   })}
                 </TableRow>
@@ -215,7 +159,7 @@ export default function CoinTable({
         </TableContainer>
       </Paper>
 
-      <Modal open={open} onClose={handleClose}>
+      <Modal open={open} onClose={() => setOpen(false)}>
         <Box
           sx={{
             position: "absolute",
@@ -225,79 +169,76 @@ export default function CoinTable({
             bgcolor: "white",
             boxShadow: 24,
             p: 3,
-            width: "500px",
+            width: 500,
             borderRadius: 2,
           }}
         >
-          <Box display="flex" alignItems="center" gap={2} mb={2}>
-            <img
-              src={selectedCoin?.image}
-              alt={selectedCoin?.name}
-              width={40}
-              height={40}
-              style={{ borderRadius: "50%" }}
-            />
-            <Typography variant="h6" fontWeight="bold">
-              {selectedCoin?.name} ({selectedCoin?.symbol.toUpperCase()})
-            </Typography>
-          </Box>
+          {selectedCoin && (
+            <>
+              <Box display="flex" alignItems="center" gap={2} mb={2}>
+                <img
+                  src={selectedCoin.image}
+                  alt={selectedCoin.name}
+                  width={40}
+                  height={40}
+                  style={{ borderRadius: "50%" }}
+                />
+                <Typography variant="h6" fontWeight="bold">
+                  {selectedCoin.name} ({selectedCoin.symbol.toUpperCase()})
+                </Typography>
+              </Box>
 
-          {chartData && (
-            <ResponsiveContainer width="100%" height={300}>
-              <LineChart
-                data={chartData[activeType].map((entry: [number, number]) => ({
-                  time: new Date(entry[0]).toLocaleDateString(),
-                  value: entry[1],
-                }))}
-              >
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis
-                  dataKey="time"
-                  label={{ value: activeType, position: "insideBottom" }}
-                  tick={false} 
-                />
-                <YAxis />
-                <Tooltip />
-                <Line
-                  type="monotone"
-                  dataKey="value"
-                  stroke="#f97316"
-                  dot={false}
-                />
-              </LineChart>
-            </ResponsiveContainer>
+              {chartData && (
+                <>
+                  <ResponsiveContainer width="100%" height={300}>
+                    <LineChart
+                      data={chartData[activeType].map(([time, value]: [number, number]) => ({
+                        time: new Date(time).toLocaleDateString(),
+                        value,
+                      }))}
+                    >
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis dataKey="time" tick={false} />
+                      <YAxis />
+                      <Tooltip />
+                      <Line type="monotone" dataKey="value" stroke="#f97316" dot={false} />
+                    </LineChart>
+                  </ResponsiveContainer>
+
+                  <Stack direction="row" spacing={2} mt={3} justifyContent="center">
+                    {["prices", "market_caps", "total_volumes"].map((type) => (
+                      <Button
+                        key={type}
+                        size="small"
+                        variant={activeType === type ? "contained" : "outlined"}
+                        onClick={() => setActiveType(type as any)}
+                      >
+                        {type.replace("_", " ")}
+                      </Button>
+                    ))}
+                  </Stack>
+
+                  <Box mt={3}>
+                    <Typography variant="body2" mb={1}>
+                      🔸 <strong>{activeType.replace("_", " ")}:</strong>{" "}
+                      {formatValue(chartData[activeType]?.at(-1)?.[1])}
+                    </Typography>
+                    <Typography variant="body2" mb={1}>
+                      🔹 <strong>Current Price:</strong>{" "}
+                      {formatValue(selectedCoin.current_price)}
+                    </Typography>
+                    <Typography variant="body2">
+                      🚀 <strong>ATH:</strong> {formatValue(selectedCoin.ath)}
+                    </Typography>
+                  </Box>
+                </>
+              )}
+            </>
           )}
-
-          <Stack direction="row" spacing={2} mt={3} justifyContent="center">
-            {["prices", "market_caps", "total_volumes"].map((type) => (
-              <Button
-                key={type}
-                size="small"
-                variant={activeType === type ? "contained" : "outlined"}
-                onClick={() => setActiveType(type as any)}
-              >
-                {type.replace("_", " ")}
-              </Button>
-            ))}
-          </Stack>
-
-          <Box mt={3}>
-            <Typography variant="body2" color="text.secondary" mb={1}>
-              🔸 <strong>{activeType.replace("_", " ")}:</strong>{" "}
-              {chartData?.[activeType]?.[
-                chartData[activeType].length - 1
-              ]?.[1].toLocaleString()}
-            </Typography>
-            <Typography variant="body2" color="text.secondary" mb={1}>
-              🔹 <strong>Current Price:</strong>{" "}
-              {selectedCoin?.current_price.toLocaleString()}
-            </Typography>
-            <Typography variant="body2" color="text.secondary">
-              🚀 <strong>ATH:</strong> {selectedCoin?.ath?.toLocaleString()}
-            </Typography>
-          </Box>
         </Box>
       </Modal>
     </>
   );
-}
+};
+
+export default CoinTable;
