@@ -37,7 +37,11 @@ interface Coin {
   ath: number;
 }
 
-const columns = [
+const columns: {
+  id: string;
+  label: string;
+  align?: "left" | "right" | "center" | "justify" | "inherit";
+}[] = [
   { id: "coin", label: "Coin" },
   { id: "name", label: "Name" },
   { id: "current_price", label: "Price", align: "right" },
@@ -45,6 +49,7 @@ const columns = [
   { id: "total_volume", label: "Total Volume", align: "right" },
   { id: "sparkline", label: "7d Chart", align: "right" },
 ];
+
 
 const CoinTable = ({
   coins,
