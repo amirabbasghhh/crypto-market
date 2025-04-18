@@ -165,83 +165,87 @@ const CoinTable = ({
       </Paper>
 
       <Modal open={open} onClose={() => setOpen(false)}>
-        <Box
-          sx={{
-            position: "absolute",
-            top: "50%",
-            left: "50%",
-            transform: "translate(-50%, -50%)",
-            bgcolor: "white",
-            boxShadow: 24,
-            p: 3,
-            width: 500,
-            borderRadius: 2,
-          }}
-        >
-          {selectedCoin && (
-            <>
-              <Box display="flex" alignItems="center" gap={2} mb={2}>
-                <img
-                  src={selectedCoin.image}
-                  alt={selectedCoin.name}
-                  width={40}
-                  height={40}
-                  style={{ borderRadius: "50%" }}
-                />
-                <Typography variant="h6" fontWeight="bold">
-                  {selectedCoin.name} ({selectedCoin.symbol.toUpperCase()})
-                </Typography>
-              </Box>
-
-              {chartData && (
-                <>
-                  <ResponsiveContainer width="100%" height={300}>
-                    <LineChart
-                      data={chartData[activeType].map(([time, value]: [number, number]) => ({
-                        time: new Date(time).toLocaleDateString(),
-                        value,
-                      }))}
-                    >
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="time" tick={false} />
-                      <YAxis />
-                      <Tooltip />
-                      <Line type="monotone" dataKey="value" stroke="#f97316" dot={false} />
-                    </LineChart>
-                  </ResponsiveContainer>
-
-                  <Stack direction="row" spacing={2} mt={3} justifyContent="center">
-                    {["prices", "market_caps", "total_volumes"].map((type) => (
-                      <Button
-                        key={type}
-                        size="small"
-                        variant={activeType === type ? "contained" : "outlined"}
-                        onClick={() => setActiveType(type as any)}
-                      >
-                        {type.replace("_", " ")}
-                      </Button>
-                    ))}
-                  </Stack>
-
-                  <Box mt={3}>
-                    <Typography variant="body2" mb={1}>
-                      🔸 <strong>{activeType.replace("_", " ")}:</strong>{" "}
-                      {formatValue(chartData[activeType]?.at(-1)?.[1])}
-                    </Typography>
-                    <Typography variant="body2" mb={1}>
-                      🔹 <strong>Current Price:</strong>{" "}
-                      {formatValue(selectedCoin.current_price)}
-                    </Typography>
-                    <Typography variant="body2">
-                      🚀 <strong>ATH:</strong> {formatValue(selectedCoin.ath)}
-                    </Typography>
-                  </Box>
-                </>
-              )}
-            </>
-          )}
+  <Box
+    sx={{
+      position: "absolute",
+      top: "50%",
+      left: "50%",
+      transform: "translate(-50%, -50%)",
+      bgcolor: "white",
+      boxShadow: 24,
+      p: 3,
+      width: {
+        xs: '90%',  // عرض برای موبایل (۹۰ درصد عرض صفحه)
+        sm: 500,    // عرض برای صفحه‌های بزرگتر
+      },
+      borderRadius: 2,
+    }}
+  >
+    {selectedCoin && (
+      <>
+        <Box display="flex" alignItems="center" gap={2} mb={2}>
+          <img
+            src={selectedCoin.image}
+            alt={selectedCoin.name}
+            width={40}
+            height={40}
+            style={{ borderRadius: "50%" }}
+          />
+          <Typography variant="h6" fontWeight="bold">
+            {selectedCoin.name} ({selectedCoin.symbol.toUpperCase()})
+          </Typography>
         </Box>
-      </Modal>
+
+        {chartData && (
+          <>
+            <ResponsiveContainer width="100%" height={300}>
+              <LineChart
+                data={chartData[activeType].map(([time, value]: [number, number]) => ({
+                  time: new Date(time).toLocaleDateString(),
+                  value,
+                }))}
+              >
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="time" tick={false} />
+                <YAxis />
+                <Tooltip />
+                <Line type="monotone" dataKey="value" stroke="#f97316" dot={false} />
+              </LineChart>
+            </ResponsiveContainer>
+
+            <Stack direction="row" spacing={2} mt={3} justifyContent="center">
+              {["prices", "market_caps", "total_volumes"].map((type) => (
+                <Button
+                  key={type}
+                  size="small"
+                  variant={activeType === type ? "contained" : "outlined"}
+                  onClick={() => setActiveType(type as any)}
+                >
+                  {type.replace("_", " ")}
+                </Button>
+              ))}
+            </Stack>
+
+            <Box mt={3}>
+              <Typography variant="body2" mb={1}>
+                🔸 <strong>{activeType.replace("_", " ")}:</strong>{" "}
+                {formatValue(chartData[activeType]?.at(-1)?.[1])}
+              </Typography>
+              <Typography variant="body2" mb={1}>
+                🔹 <strong>Current Price:</strong>{" "}
+                {formatValue(selectedCoin.current_price)}
+              </Typography>
+              <Typography variant="body2">
+                🚀 <strong>ATH:</strong> {formatValue(selectedCoin.ath)}
+              </Typography>
+            </Box>
+          </>
+        )}
+      </>
+    )}
+  </Box>
+</Modal>
+
     </>
   );
 };
